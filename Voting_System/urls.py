@@ -19,5 +19,5 @@ from CA import views as CA_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('generate-address/', CA_views.generate_certificaat),
+    path('generate-certificaat/', CA_views.generate_certificaat),
 ]

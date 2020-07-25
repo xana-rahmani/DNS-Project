@@ -10,5 +10,5 @@ def generateCertificaat():
         "name": "xana"
     }
     response = session.post(url=BASE_URL + "generate-certificaat", data=payload)
-    print(response.json())
+    print(response)
     return response

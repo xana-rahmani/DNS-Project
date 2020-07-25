@@ -3,6 +3,7 @@ from django.http.response import JsonResponse
 
 # Create your views here.
 def generate_certificaat(request):
+    print("heyyyyy")
     print("request: ", request)
     return JsonResponse(
         {
