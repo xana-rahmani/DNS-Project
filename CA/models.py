@@ -8,6 +8,6 @@ class User(models.Model):
 
 
 class Certificaat(models.Model):
-    national_code = models.CharField(max_length=12, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     private_key = models.CharField(max_length=100, unique=True)
     public_key = models.CharField(max_length=100, unique=True)
