@@ -15,7 +15,7 @@ def generate_certificaat(request):
         return JsonResponse({'status': 'fail', 'message': 'نام یا کدملی به درستی ارسال نشده است.'}, status=200)
 
     try:
-        user = User.objects.get(name=name, national_code=national_code)
+        user = User.objects.filter(name=name, national_code=national_code)[0]
         if user:
             certificaat = Certificaat.objects.filter(user=user)[0]
             private_key = certificaat.private_key
