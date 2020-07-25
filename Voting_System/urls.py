@@ -15,7 +15,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from CA import views as CA_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('generate-address/', CA_views.generate_certificaat),
 ]
