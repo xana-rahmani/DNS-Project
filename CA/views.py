@@ -1,5 +1,4 @@
 import os
-import base64
 from django.http.response import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
@@ -10,7 +9,7 @@ from Crypto.PublicKey import RSA
 
 
 # Create your views here.
-def load_key(path):
+def load_RSA_key(path):
     path = os.path.join('CA', path)
     path = os.path.join(settings.BASE_DIR, path)
     with open(path, 'r') as f:
@@ -23,8 +22,8 @@ def load_key(path):
 @require_http_methods(["POST"])
 def generate_certificaat(request):
     try:
-        data = request.POST["data"]
-        actual_message = Utilities.payload_decryptor(data, load_key('CA-private.key'))
+        sessionKey = Utilities.payload_decryptor_RSA(request.POST["sessionKey"], load_RSA_key('CA-private.key')).encode()
+        actual_message = Utilities.payload_decryptor_Fernet(request.POST["data"], sessionKey)
         name = actual_message["name"]
         national_code = actual_message["national_code"]
         if national_code is None or name is None:
@@ -47,41 +46,58 @@ def generate_certificaat(request):
 
         user = userObjects.first()
         if user:
-            certificaat = Certificaat.objects.filter(user=user)
-            if certificaat.count() == 1:
-                certificaat = certificaat.first()
-                private_key = certificaat.private_key
-                public_key = certificaat.public_key
-                payload = {
-                    'status': 'successful',
-                    'message': 'گواهی شما ارسال شد.',
-                    'private_key': private_key,
-                    'public_key': public_key
-
-                }
-                return sendResponse(payload)
-            else:
-                private_key, public_key = Utilities.generate_key()
-                certificate = Certificaat(user=user, private_key=private_key, public_key=public_key)
-                certificate.save()
-                payload = {
-                    'status': 'successful',
-                    'message': 'گواهی با موفقیت ایجاد شد.',
-                    'private_key': private_key,
-                    'public_key': public_key
-
-                }
-                return sendResponse(payload)
+            payload = create_certificaat(user)
+            return sendResponse(payload, national_code)
         else:
             payload = {'status': 'fail', 'message': 'کاربر یافت نشد، لطفا دوباره تلاش کنید.'}
-            return sendResponse(payload)
+            return sendResponse(payload, national_code)
     except Exception as e:
         print("#Exception2: {}".format(e))
         payload = {'status': 'fail', 'message': 'لطفا با پشتیبانی تماس بگیرید.'}
         return sendResponse(payload)
 
 
-def sendResponse(payload):
-    encrypted_payload = Utilities.payload_encryptor(payload, load_key('CA-public.key').publickey)
-    encrypted_payload = base64.b64encode(encrypted_payload)
-    return JsonResponse({'data': encrypted_payload}, status=200)
+def create_certificaat(user):
+    certificaat = Certificaat.objects.filter(user=user)
+    if certificaat.count() == 1:
+        certificaat = certificaat.first()
+        private_key = certificaat.private_key
+        public_key = certificaat.public_key
+        payload = {
+            'status': 'successful',
+            'message': 'گواهی شما ارسال شد.',
+            'private_key': private_key,
+            'public_key': public_key
+
+        }
+        return payload
+    else:
+        private_key, public_key = Utilities.generate_RSA_key()
+        certificate = Certificaat(user=user, private_key=private_key, public_key=public_key)
+        certificate.save()
+        payload = {
+            'status': 'successful',
+            'message': 'گواهی با موفقیت ایجاد شد.',
+            'private_key': private_key,
+            'public_key': public_key
+
+        }
+        return payload
+
+
+def sendResponse(data, national_code=None):
+    """ Return Without Encryption"""
+    if national_code is None:
+        return JsonResponse({"data": data}, status=200)
+
+    """ Ser National Code for Session Key"""
+    Session_Key = national_code.encode()
+
+    """ Encrypt Data with Session Key"""
+    from cryptography.fernet import Fernet
+    key = Fernet.generate_key()
+    encryptedData = Utilities.payload_encryptor_Fernet(data, key)
+
+    """ Return Response """
+    # print("sendResponse: ", {"data": encryptedData})
+    return JsonResponse({"data": encryptedData}, status=200)
