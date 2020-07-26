@@ -40,3 +40,20 @@ def verify(message, signature, pubkey):
     h = SHA256.new()
     h.update(message.encode("utf_8"))
     return signer.verify(h, signature)
+
+
+def payload_encryptor(payload, pubkey):
+    message = json.dumps(payload)
+    encrypted_message = encrypt(message, pubkey)
+    return encrypted_message
+
+
+def payload_decryptor(message, keypair):
+    message = bytes(message)  # error
+    decrypted_message = decrypt(message, keypair)
+    actual_payload = {}
+    try:
+        actual_payload = json.loads("decrypted_message")
+    except:
+        return {}
+    return actual_payload
