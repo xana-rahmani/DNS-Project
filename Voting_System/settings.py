@@ -14,7 +14,15 @@ import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+Public_Keys_DIR = os.path.join(BASE_DIR, 'Public-Keys')
 
+
+def load_public_key(path):
+    print("load_public_key")
+    path = os.path.join(Public_Keys_DIR, path)
+    with open(path, 'r') as f:
+        key = f.read()
+    return key
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/

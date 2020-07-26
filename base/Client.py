@@ -1,8 +1,10 @@
 import requests
+from Voting_System.settings import load_public_key
 
 session = requests.Session()
 BASE_URL = "http://127.0.0.1:8000/"
 
+print(load_public_key('CA-public.key'))
 
 def generateCertificaat():
     payload = {
