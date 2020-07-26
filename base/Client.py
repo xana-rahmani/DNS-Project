@@ -2,16 +2,16 @@ import requests
 import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-Public_Keys_DIR = os.path.join(BASE_DIR, 'Public-Keys')
+Public_Keys_DIR = os.path.join(BASE_DIR, 'base/Public-Keys')
 
 
 def load_public_key(path):
-    print("load_public_key")
     path = os.path.join(Public_Keys_DIR, path)
     with open(path, 'r') as f:
         key = f.read()
     return key
 
+print(load_public_key("CA-public.key"))
 
 session = requests.Session()
 BASE_URL = "http://127.0.0.1:8000/"

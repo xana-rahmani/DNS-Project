@@ -14,7 +14,7 @@ import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-Public_Keys_DIR = os.path.join(BASE_DIR, 'Public-Keys')
+Public_Keys_DIR = os.path.join(BASE_DIR, 'base/Public-Keys')
 
 
 def load_public_key(path):
