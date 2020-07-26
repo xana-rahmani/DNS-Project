@@ -7,7 +7,10 @@ from Crypto.Hash import SHA256
 
 
 def generate_key():
-    return RSA.generate(1024, os.urandom)
+    key = RSA.generate(1024, os.urandom)
+    private_key = key.exportKey()
+    public_key = key.publickey().exportKey()
+    return private_key.decode('ascii'), public_key.decode('ascii')
 
 
 def encrypt(message, pubKey):
@@ -19,7 +22,7 @@ def encrypt(message, pubKey):
 def decrypt(message, keypair):
     decryptor = PKCS1_OAEP.new(keypair)
     decrypted = decryptor.decrypt(message)
-    return decrypted
+    return decrypted.decode('utf-8')
 
 
 def sign(message, keypair):
@@ -35,9 +38,3 @@ def verify(message, signature, pubkey):
     h = SHA256.new()
     h.update(message.encode("utf_8"))
     return signer.verify(h, signature)
-
-
-
-
-
-
