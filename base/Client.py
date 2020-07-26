@@ -29,7 +29,7 @@ def generateCertificaat():
     encrypted = Utilities.payload_encryptor(data, key)
     # print(base64.b64encode(encrypted))
 
-    payload = {"request": encrypted}
+    payload = {"data": base64.b64encode(encrypted)}
     response = session.post(url=BASE_URL + "generate-certificaat", data=payload)
-    print(response)
+    print(response.json())
     return response

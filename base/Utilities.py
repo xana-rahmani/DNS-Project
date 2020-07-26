@@ -1,7 +1,6 @@
 import os
 import json
 import base64
-# use pip install pycryptodome
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.Signature import PKCS1_v1_5
@@ -49,11 +48,11 @@ def payload_encryptor(payload, pubkey):
 
 
 def payload_decryptor(message, keypair):
-    message = bytes(message)  # error
+    message = bytes(message, 'utf-8')
+    message = base64.b64decode(message)
     decrypted_message = decrypt(message, keypair)
-    actual_payload = {}
     try:
-        actual_payload = json.loads("decrypted_message")
+        actual_payload = json.loads(decrypted_message) or {}
     except:
         return {}
     return actual_payload
