@@ -28,33 +28,33 @@ def generate_certificaat(request):
         national_code = actual_message["national_code"]
         if national_code is None or name is None:
             payload = {'status': 'fail', 'message': 'نام یا کدملی به درستی ارسال نشده است.'}
-            return sendResponse(payload)
+            return sendResponse(payload, sessionKey)
     except Exception as e:
         print("#Exception-1: {}".format(e))
         payload = {'status': 'fail', 'message': 'درخواست به درستی ارسال نشده است.'}
-        return sendResponse(payload)
+        return sendResponse(payload, sessionKey)
 
     try:
         userObjects = User.objects.filter(name=name, national_code=national_code)
         if userObjects.count() <= 0:
             payload = {'status': 'fail', 'message': 'نام یا کدملی شما معتبر نیست.'}
-            return sendResponse(payload)
+            return sendResponse(payload, sessionKey)
         elif userObjects.count() > 1:
             print("#ERROR IN SYSTEM: 2 user with same national code")
             payload = {'status': 'fail', 'message': 'لطفا با پشتیبانی تماس بگیرید.'}
-            return sendResponse(payload)
+            return sendResponse(payload, sessionKey)
 
         user = userObjects.first()
         if user:
             payload = create_certificaat(user)
-            return sendResponse(payload, national_code)
+            return sendResponse(payload, sessionKey)
         else:
             payload = {'status': 'fail', 'message': 'کاربر یافت نشد، لطفا دوباره تلاش کنید.'}
-            return sendResponse(payload, national_code)
+            return sendResponse(payload, sessionKey)
     except Exception as e:
         print("#Exception2: {}".format(e))
         payload = {'status': 'fail', 'message': 'لطفا با پشتیبانی تماس بگیرید.'}
-        return sendResponse(payload)
+        return sendResponse(payload, sessionKey)
 
 
 def create_certificaat(user):
@@ -85,19 +85,10 @@ def create_certificaat(user):
         return payload
 
 
-def sendResponse(data, national_code=None):
-    """ Return Without Encryption"""
-    if national_code is None:
-        return JsonResponse({"data": data}, status=200)
-
-    """ Ser National Code for Session Key"""
-    Session_Key = national_code.encode()
+def sendResponse(data, key):
 
     """ Encrypt Data with Session Key"""
-    from cryptography.fernet import Fernet
-    key = Fernet.generate_key()
     encryptedData = Utilities.payload_encryptor_Fernet(data, key)
-
+    encryptedData = encryptedData.decode('utf-8')
     """ Return Response """
-    # print("sendResponse: ", {"data": encryptedData})
     return JsonResponse({"data": encryptedData}, status=200)
