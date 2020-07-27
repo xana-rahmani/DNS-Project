@@ -51,8 +51,7 @@ def generateCertificaat(name, national_code):
 def sendRequest(data, RSA_KEY, path):
 
     """ Generate Session Key"""
-    # Session_Key = Utilities.generate_Fernet_key()
-    Session_Key = b'nRRiGd4zBXQvwnHc0gtHDUbvSXs2l_laGGTXecGNmQ8='
+    Session_Key = Utilities.generate_Fernet_key()
 
     """ Encrypt Data with Session Key"""
     encryptedData = Utilities.payload_encryptor_Fernet(data, Session_Key)
