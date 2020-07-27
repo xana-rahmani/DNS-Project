@@ -1,31 +1,13 @@
 import requests
-import os
-from base import Utilities
 import base64
 from Crypto.PublicKey import RSA
+from base import Utilities
+from base import ClientKeysManagement as KEYS
 
-
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-Public_Keys_DIR = os.path.join(BASE_DIR, 'base/Public-Keys')
-Client_Keys_DIR = os.path.join(BASE_DIR, 'base/ClientKeys')
 
 session = requests.Session()
 BASE_URL = "http://127.0.0.1:8000/"
 
-
-def load_public_key(path):
-    path = os.path.join(Public_Keys_DIR, path)
-    with open(path, 'r') as f:
-        key = f.read()
-    return key
-
-def save_my_keys(privateKey=None, publicKey=None):
-    if privateKey:
-        with open(Client_Keys_DIR + "/myPrivateKey.key", 'w') as f:
-            f.write(privateKey)
-    if publicKey:
-        with open(Client_Keys_DIR + "/myPublicKey.key", 'w') as f:
-            f.write(publicKey)
 
 def generateCertificaat(name, national_code):
     """ Set national code & name in data dic"""
@@ -35,7 +17,7 @@ def generateCertificaat(name, national_code):
     }
 
     """ LOAD RSA Keys """
-    CA_RSA_Key = RSA.import_key(load_public_key('CA-public.key'))
+    CA_RSA_Key = RSA.import_key(KEYS.load_public_key('CA-public.key'))
 
     """ Send Request to CA """
     try:
@@ -43,7 +25,7 @@ def generateCertificaat(name, national_code):
         if response.get('status') == 'successful':
             myPrivateKey = response.get('private_key')
             myPublicKey = response.get('public_key')
-            save_my_keys(privateKey=myPrivateKey, publicKey=myPublicKey)
+            KEYS.save_my_keys(privateKey=myPrivateKey, publicKey=myPublicKey)
     except Exception as e:
         print(e)
 

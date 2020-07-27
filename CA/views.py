@@ -72,7 +72,11 @@ def create_certificaat(user):
         }
         return payload
     else:
-        private_key, public_key = Utilities.generate_RSA_key()
+        while True:
+            private_key, public_key = Utilities.generate_RSA_key()
+            certificaatWithSameRSAKeys = Certificaat.objects.filter(private_key=private_key)
+            if certificaatWithSameRSAKeys.count() == 0:
+                break
         certificate = Certificaat(user=user, private_key=private_key, public_key=public_key)
         certificate.save()
         payload = {
