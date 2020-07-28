@@ -11,3 +11,4 @@ class Certificaat(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     private_key = models.CharField(max_length=100, unique=True)
     public_key = models.CharField(max_length=100, unique=True)
+    life_time = models.CharField(max_length=100,default=None)

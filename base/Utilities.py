@@ -43,9 +43,10 @@ def verify_RSA(message, signature, pubkey):
     h = SHA256.new()
     h.update(message.encode("utf_8"))
     return signer.verify(h, signature)
-def verify_certificate(national_code,public_key,signature,pubkey):
+def verify_certificate(national_code,public_key,signature,pubkey,lifeTime):
     message = json.dumps({'national_code': national_code,
-                          'public_key': public_key
+                          'public_key': public_key,
+                          'life_time' : lifeTime
                           })
     return verify_RSA(message,signature,pubkey)
 
@@ -98,6 +99,10 @@ def payload_decryptor_Fernet(message, key):
     return actual_payload
 def create_timestamp_for_payload():
     return datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f')
+def create_lifetime_for_payload():
+    import datetime as dt
+    lifeTime = datetime.now() + dt.timedelta(365)
+    return lifeTime.strftime('%Y-%m-%dT%H:%M:%S.%f')
 def check_payload_timestamp(timestamp):
     real_time = datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%S.%f')
     now = datetime.now()
@@ -105,7 +110,13 @@ def check_payload_timestamp(timestamp):
     if difference <= 5:
         return True
     return False
+def check_payload_lifetime(lifeTime):
+    real_time = datetime.strptime(lifeTime, '%Y-%m-%dT%H:%M:%S.%f')
+    now = datetime.now()
+    difference = (now - real_time).total_seconds()
+    if difference < 0:
+        return True
+    return False
 
-time1 = datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f')
-time2 = datetime.strptime(time1, '%Y-%m-%dT%H:%M:%S.%f')
+
 

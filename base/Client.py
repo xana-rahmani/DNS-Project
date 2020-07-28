@@ -15,13 +15,14 @@ def generateCertificaat(name, national_code):
     """ Set national code & name in data dic"""
     data = {
         "national_code": national_code,
-        "name": name
+        "name": name,
+        "timestamp" : Utilities.create_timestamp_for_payload()
     }
 
 
     """ LOAD RSA Keys """
     CA_RSA_Key = RSA.import_key(KEYS.load_public_key('CA-public.key'))
-    print(CA_RSA_Key)
+    # print(CA_RSA_Key)
 
     """ Send Request to CA """
     try:
@@ -29,10 +30,18 @@ def generateCertificaat(name, national_code):
         if response.get('status') == 'successful':
             myPrivateKey = response.get('private_key')
             myPublicKey = response.get('public_key')
+            lifeTime = response.get('life_time')
+            timestamp = response.get('time_stamp')
             signature = base64.b64decode(response.get('certificate_signature').encode('ascii'))
 
-            if Utilities.verify_certificate(national_code = national_code,public_key=myPublicKey,signature=signature,pubkey=CA_RSA_Key):
-                print("گواهی دریافت شده و به درستی توسط ca امضا شده است.")
+            if Utilities.check_payload_timestamp(timestamp) == False:
+                print("گواهی دریافت شده تازه نمیباشد")
+                return
+            if Utilities.verify_certificate(national_code = national_code,public_key=myPublicKey,signature=signature,pubkey=CA_RSA_Key,lifeTime = lifeTime):
+                if Utilities.check_payload_lifetime(lifeTime) == False:
+                    print("گواهی ارسال شده منقصی شده است")
+                    return
+                print("گواهی دریافت شده و به درستی توسط ca امضا شده است. همچنین تاریخ انقضای آن فرا نرسیده است")
                 KEYS.save_certificate_signature(response.get('certificate_signature'))
                 KEYS.save_my_keys(privateKey=myPrivateKey, publicKey=myPublicKey)
 
@@ -44,7 +53,6 @@ def sendRequest(data, RSA_KEY, path):
 
     """ Generate Session Key"""
     Session_Key = Utilities.generate_Fernet_key()
-
     """ Encrypt Data with Session Key"""
     encryptedData = Utilities.payload_encryptor_Fernet(data, Session_Key)
     stringSession_Key = str(Session_Key, 'utf-8')

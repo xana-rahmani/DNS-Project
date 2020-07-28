@@ -1,5 +1,6 @@
 import os
 import json
+from datetime import datetime
 import base64
 from django.http.response import JsonResponse
 from django.views.decorators.http import require_http_methods
@@ -28,8 +29,12 @@ def generate_certificaat(request):
         actual_message = Utilities.payload_decryptor_Fernet(request.POST["data"], sessionKey)
         name = actual_message["name"]
         national_code = actual_message["national_code"]
+        timestamp = actual_message["timestamp"]
         if national_code is None or name is None:
             payload = {'status': 'fail', 'message': 'نام یا کدملی به درستی ارسال نشده است.'}
+            return sendResponse(payload, sessionKey)
+        if Utilities.check_payload_timestamp(timestamp) == False:
+            payload = {'status': 'fail', 'message': 'مهلت درخواست ارسال شده منقضی شده است.'}
             return sendResponse(payload, sessionKey)
     except Exception as e:
         print("#Exception-1: {}".format(e))
@@ -64,16 +69,21 @@ def create_certificaat(user,national_code):
         certificaat = certificaat.first()
         private_key = certificaat.private_key
         public_key = certificaat.public_key
+        life_time = certificaat.life_time
         message = json.dumps({'national_code': national_code,
-                              'public_key': public_key
+                              'public_key': public_key,
+                              'life_time' : life_time
                               })
+
         sig = base64.b64encode(Utilities.sign_RSA(message, load_RSA_key('CA-private.key'))).decode('ascii')
         payload = {
             'status': 'successful',
             'message': 'گواهی شما ارسال شد.',
             'private_key': private_key,
             'public_key': public_key,
-            'certificate_signature': sig
+            'certificate_signature': sig,
+            'life_time': life_time,
+            'time_stamp': Utilities.create_timestamp_for_payload()
 
         }
         return payload
@@ -83,10 +93,12 @@ def create_certificaat(user,national_code):
             certificaatWithSameRSAKeys = Certificaat.objects.filter(private_key=private_key)
             if certificaatWithSameRSAKeys.count() == 0:
                 break
-        certificate = Certificaat(user=user, private_key=private_key, public_key=public_key)
+        life_time = Utilities.create_lifetime_for_payload()
+        certificate = Certificaat(user=user, private_key=private_key, public_key=public_key,life_time = life_time)
         certificate.save()
         message = json.dumps({'national_code': national_code,
-                              'public_key': public_key
+                              'public_key': public_key,
+                              'life_time': life_time
                               })
         sig = base64.b64encode(Utilities.sign_RSA(message, load_RSA_key('CA-private.key'))).decode('ascii')
         payload = {
@@ -94,7 +106,9 @@ def create_certificaat(user,national_code):
             'message': 'گواهی با موفقیت ایجاد شد.',
             'private_key': private_key,
             'public_key': public_key,
-            'certificate_signature': sig
+            'certificate_signature': sig,
+            'life_time': life_time,
+            'time_stamp': Utilities.create_timestamp_for_payload()
 
         }
         return payload
