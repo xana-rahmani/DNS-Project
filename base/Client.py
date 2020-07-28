@@ -34,6 +34,7 @@ def generateCertificaat(name, national_code):
             timestamp = response.get('time_stamp')
             signature = base64.b64decode(response.get('certificate_signature').encode('ascii'))
 
+
             if Utilities.check_payload_timestamp(timestamp) == False:
                 print("گواهی دریافت شده تازه نمیباشد")
                 return
@@ -77,27 +78,26 @@ def generate_AS_ticket(national_code):
     try:
         response = sendRequest(data=data, RSA_KEY=AS_RSA_Key, path="generate-AS-ticket")
         if response.get('status') == 'successful':
-            print("heyyyy")
+            sk_voter = response.get('sk_voter')
+            vote_crt = response.get('vote_crt')
+            timestamp = response.get('time_stamp')
+            signature = base64.b64decode(response.get('signature').encode('ascii'))
 
-            # myPrivateKey = response.get('private_key')
-            # myPublicKey = response.get('public_key')
-            # lifeTime = response.get('life_time')
-            # timestamp = response.get('time_stamp')
-            # signature = base64.b64decode(response.get('certificate_signature').encode('ascii'))
-            #
-            # if Utilities.check_payload_timestamp(timestamp) == False:
-            #     print("گواهی دریافت شده تازه نمیباشد")
-            #     return
-            # if Utilities.verify_certificate(national_code=national_code, public_key=myPublicKey, signature=signature,
-            #                                 pubkey=CA_RSA_Key, lifeTime=lifeTime):
-            #     if Utilities.check_payload_lifetime(lifeTime) == False:
-            #         print("گواهی ارسال شده منقصی شده است")
-            #         return
-            #     print("گواهی دریافت شده و به درستی توسط ca امضا شده است. همچنین تاریخ انقضای آن فرا نرسیده است")
-            #     KEYS.save_certificate_signature(response.get('certificate_signature'))
-            #     KEYS.save_certificate_lifeTime(response.get('lifeTime'))
-            #     KEYS.save_my_keys(privateKey=myPrivateKey, publicKey=myPublicKey)
-
+            if Utilities.check_payload_timestamp(timestamp) == False:
+                print("گواهی دریافت شده تازه نمیباشد")
+                return
+            message = json.dumps({
+                'status': 'successful',
+                'sk_voter': sk_voter,
+                'vote_crt': vote_crt,
+                'time_stamp': timestamp
+            })
+            if Utilities.verify_RSA(message,signature,AS_RSA_Key) == False:
+                print("جواب دریافت شده معتبر نمیباشد")
+                return
+            print("بلیت و کلید رای دهی با موفقیت دریافت شد. برای اطمینان از کارکرد آن ها لطفاً اقدام به رای دهی نمایید")
+            KEYS.save_voting_certificate(vote_crt)
+            KEYS.save_voting_secret_key(sk_voter)
     except Exception as e:
         print(e)
 

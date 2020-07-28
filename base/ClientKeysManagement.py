@@ -27,7 +27,7 @@ def save_certificate_signature(signature):
     except Exception as e:
         print("Exception in Write MY Keys: {}".format(e))
 def read_certificate_signature():
-    with open(Client_Keys_DIR + "/myCertificateSignature.txt", 'w') as f:
+    with open(Client_Keys_DIR + "/myCertificateSignature.txt", 'r') as f:
         certificate_signature = f.read()
     return certificate_signature
 def save_certificate_lifeTime(lifetime):
@@ -37,16 +37,38 @@ def save_certificate_lifeTime(lifetime):
     except Exception as e:
         print("Exception in Write MY Keys: {}".format(e))
 def read_certificate_lifeTime():
-    with open(Client_Keys_DIR + "/certificateLifeTime.txt", 'w') as f:
+    with open(Client_Keys_DIR + "/certificateLifeTime.txt", 'r') as f:
         certificate_lifeTime = f.read()
     return certificate_lifeTime
 
 def read_my_keys():
     try:
-        with open(Client_Keys_DIR + "/myPrivateKey.key", 'w') as f:
+        with open(Client_Keys_DIR + "/myPrivateKey.key", 'r') as f:
             privateKey = f.read()
-        with open(Client_Keys_DIR + "/myPublicKey.key", 'w') as f:
+        with open(Client_Keys_DIR + "/myPublicKey.key", 'r') as f:
             publicKey = f.read()
         return privateKey, publicKey
     except Exception as e:
         print("Exception in Read MY Keys: {}".format(e))
+
+def save_voting_certificate(vote_cert):
+    try:
+        with open(Client_Keys_DIR + "/myVoteCertificate.txt", 'w') as f:
+            f.write(vote_cert)
+    except Exception as e:
+        print("Exception in Write MY Keys: {}".format(e))
+def read_voting_certificate():
+    with open(Client_Keys_DIR + "/myVoteCertificate.txt", 'r') as f:
+        certificate_lifeTime = f.read()
+    return certificate_lifeTime
+
+def save_voting_secret_key(sk_voter):
+    try:
+        with open(Client_Keys_DIR + "/myVotingSecretKey.txt", 'w') as f:
+            f.write(sk_voter)
+    except Exception as e:
+        print("Exception in Write MY Keys: {}".format(e))
+def read_voting_secret_key():
+    with open(Client_Keys_DIR + "/myVotingSecretKey.txt", 'r') as f:
+        certificate_lifeTime = f.read()
+    return certificate_lifeTime

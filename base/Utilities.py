@@ -48,6 +48,7 @@ def verify_certificate(national_code,public_key,signature,pubkey,lifeTime):
                           'public_key': public_key,
                           'life_time' : lifeTime
                           })
+
     return verify_RSA(message,signature,pubkey)
 
 
