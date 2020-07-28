@@ -100,7 +100,8 @@ def generate_AS_ticket(national_code):
             KEYS.save_voting_secret_key(sk_voter)
     except Exception as e:
         print(e)
-
+def vote(candidate_id):
+    return
 
 def sendRequest(data, RSA_KEY, path):
 

@@ -17,9 +17,11 @@ from django.contrib import admin
 from django.urls import path
 from CA import views as CA_views
 from AS import views as AS_views
+from VS import views as VS_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('generate-certificaat', CA_views.generate_certificaat),
     path('generate-AS-ticket', AS_views.generate_AS_ticket),
+    path('vote', VS_views.vote),
 ]
