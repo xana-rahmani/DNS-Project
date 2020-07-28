@@ -101,6 +101,8 @@ def generate_AS_ticket(national_code):
     except Exception as e:
         print(e)
 def vote(candidate_id):
+    private_key, public_key = KEYS.read_my_keys()
+    vote_crt = KEYS.read_voting_certificate()
     return
 
 def sendRequest(data, RSA_KEY, path):
@@ -133,5 +135,6 @@ def decodeResponse(response, RSA_KEY, Session_Key):
 # c.generateCertificaat(name="xana", national_code="9075529379")
 generateCertificaat(name="xana", national_code="9075529379")
 generate_AS_ticket(national_code="9075529379")
+vote(candidate_id=1)
 
 
