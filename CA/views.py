@@ -1,4 +1,6 @@
 import os
+import json
+import base64
 from django.http.response import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
@@ -43,10 +45,9 @@ def generate_certificaat(request):
             print("#ERROR IN SYSTEM: 2 user with same national code")
             payload = {'status': 'fail', 'message': 'لطفا با پشتیبانی تماس بگیرید.'}
             return sendResponse(payload, sessionKey)
-
         user = userObjects.first()
         if user:
-            payload = create_certificaat(user)
+            payload = create_certificaat(user,national_code)
             return sendResponse(payload, sessionKey)
         else:
             payload = {'status': 'fail', 'message': 'کاربر یافت نشد، لطفا دوباره تلاش کنید.'}
@@ -57,33 +58,43 @@ def generate_certificaat(request):
         return sendResponse(payload, sessionKey)
 
 
-def create_certificaat(user):
+def create_certificaat(user,national_code):
     certificaat = Certificaat.objects.filter(user=user)
     if certificaat.count() == 1:
         certificaat = certificaat.first()
         private_key = certificaat.private_key
         public_key = certificaat.public_key
+        message = json.dumps({'national_code': national_code,
+                              'public_key': public_key
+                              })
+        sig = base64.b64encode(Utilities.sign_RSA(message, load_RSA_key('CA-private.key'))).decode('ascii')
         payload = {
             'status': 'successful',
             'message': 'گواهی شما ارسال شد.',
             'private_key': private_key,
-            'public_key': public_key
+            'public_key': public_key,
+            'certificate_signature': sig
 
         }
         return payload
     else:
-        while True:
+        while True:#preventing to create a repetitive key
             private_key, public_key = Utilities.generate_RSA_key()
             certificaatWithSameRSAKeys = Certificaat.objects.filter(private_key=private_key)
             if certificaatWithSameRSAKeys.count() == 0:
                 break
         certificate = Certificaat(user=user, private_key=private_key, public_key=public_key)
         certificate.save()
+        message = json.dumps({'national_code': national_code,
+                              'public_key': public_key
+                              })
+        sig = base64.b64encode(Utilities.sign_RSA(message, load_RSA_key('CA-private.key'))).decode('ascii')
         payload = {
             'status': 'successful',
             'message': 'گواهی با موفقیت ایجاد شد.',
             'private_key': private_key,
-            'public_key': public_key
+            'public_key': public_key,
+            'certificate_signature': sig
 
         }
         return payload

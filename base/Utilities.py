@@ -1,6 +1,8 @@
 import os
 import json
+
 import base64
+from base64 import b64decode
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.Signature import PKCS1_v1_5
@@ -40,6 +42,11 @@ def verify_RSA(message, signature, pubkey):
     h = SHA256.new()
     h.update(message.encode("utf_8"))
     return signer.verify(h, signature)
+def verify_certificate(national_code,public_key,signature,pubkey):
+    message = json.dumps({'national_code': national_code,
+                          'public_key': public_key
+                          })
+    return verify_RSA(message,signature,pubkey)
 
 
 def payload_encryptor_RSA(payload, pubkey):
@@ -88,3 +95,4 @@ def payload_decryptor_Fernet(message, key):
     except:
         return {}
     return actual_payload
+

@@ -1,8 +1,10 @@
 import requests
 import base64
+import json
 from Crypto.PublicKey import RSA
 from base import Utilities
 from base import ClientKeysManagement as KEYS
+
 
 
 session = requests.Session()
@@ -16,8 +18,10 @@ def generateCertificaat(name, national_code):
         "name": name
     }
 
+
     """ LOAD RSA Keys """
     CA_RSA_Key = RSA.import_key(KEYS.load_public_key('CA-public.key'))
+    print(CA_RSA_Key)
 
     """ Send Request to CA """
     try:
@@ -25,7 +29,13 @@ def generateCertificaat(name, national_code):
         if response.get('status') == 'successful':
             myPrivateKey = response.get('private_key')
             myPublicKey = response.get('public_key')
-            KEYS.save_my_keys(privateKey=myPrivateKey, publicKey=myPublicKey)
+            signature = base64.b64decode(response.get('certificate_signature').encode('ascii'))
+
+            if Utilities.verify_certificate(national_code = national_code,public_key=myPublicKey,signature=signature,pubkey=CA_RSA_Key):
+                print("گواهی دریافت شده و به درستی توسط ca امضا شده است.")
+                KEYS.save_certificate_signature(response.get('certificate_signature'))
+                KEYS.save_my_keys(privateKey=myPrivateKey, publicKey=myPublicKey)
+
     except Exception as e:
         print(e)
 
@@ -59,4 +69,6 @@ def decodeResponse(response, RSA_KEY, Session_Key):
 
 # from base import Client as c
 # c.generateCertificaat(name="xana", national_code="9075529379")
+generateCertificaat(name="xana", national_code="9075529379")
+
 

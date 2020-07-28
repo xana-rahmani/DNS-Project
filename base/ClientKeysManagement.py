@@ -20,7 +20,16 @@ def save_my_keys(privateKey=None, publicKey=None):
                 f.write(publicKey)
     except Exception as e:
         print("Exception in Write MY Keys: {}".format(e))
-
+def save_certificate_signature(signature):
+    try:
+        with open(Client_Keys_DIR + "/myCertificateSignature.txt", 'w') as f:
+            f.write(signature)
+    except Exception as e:
+        print("Exception in Write MY Keys: {}".format(e))
+def read_certificate_signature():
+    with open(Client_Keys_DIR + "/myCertificateSignature.txt", 'w') as f:
+        certificate_signature = f.read()
+    return certificate_signature
 
 def read_my_keys():
     try:
