@@ -1,6 +1,7 @@
 import os
 import json
-
+from datetime import datetime
+import time
 import base64
 from base64 import b64decode
 from Crypto.PublicKey import RSA
@@ -95,4 +96,16 @@ def payload_decryptor_Fernet(message, key):
     except:
         return {}
     return actual_payload
+def create_timestamp_for_payload():
+    return datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f')
+def check_payload_timestamp(timestamp):
+    real_time = datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%S.%f')
+    now = datetime.now()
+    difference = (now - real_time).total_seconds()
+    if difference <= 5:
+        return True
+    return False
+
+time1 = datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f')
+time2 = datetime.strptime(time1, '%Y-%m-%dT%H:%M:%S.%f')
 
