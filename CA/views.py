@@ -21,6 +21,7 @@ def load_RSA_key(path):
     return key
 
 
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def generate_certificaat(request):

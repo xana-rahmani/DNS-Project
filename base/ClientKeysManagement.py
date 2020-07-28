@@ -30,6 +30,16 @@ def read_certificate_signature():
     with open(Client_Keys_DIR + "/myCertificateSignature.txt", 'w') as f:
         certificate_signature = f.read()
     return certificate_signature
+def save_certificate_lifeTime(lifetime):
+    try:
+        with open(Client_Keys_DIR + "/certificateLifeTime.txt", 'w') as f:
+            f.write(lifetime)
+    except Exception as e:
+        print("Exception in Write MY Keys: {}".format(e))
+def read_certificate_lifeTime():
+    with open(Client_Keys_DIR + "/certificateLifeTime.txt", 'w') as f:
+        certificate_lifeTime = f.read()
+    return certificate_lifeTime
 
 def read_my_keys():
     try:
