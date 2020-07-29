@@ -115,6 +115,7 @@ def vote(candidate_id):
     except Exception as e:
         print("#Exception in REQUEST: {}".format(e))
 
+
 def sendRequest(data, RSA_KEY, path):
 
     """ Generate Session Key"""
@@ -135,6 +136,7 @@ def sendRequest(data, RSA_KEY, path):
         return decodeResponse(response, RSA_KEY, Session_Key)
     except Exception as e:
         print("#Exception in REQUEST: {}".format(e))
+
 
 def decodeResponse(response, RSA_KEY, Session_Key):
     data = response.get("data")
