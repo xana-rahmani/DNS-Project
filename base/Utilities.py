@@ -1,9 +1,7 @@
 import os
 import json
 from datetime import datetime
-import time
 import base64
-from base64 import b64decode
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.Signature import PKCS1_v1_5
@@ -43,13 +41,14 @@ def verify_RSA(message, signature, pubkey):
     h = SHA256.new()
     h.update(message.encode("utf_8"))
     return signer.verify(h, signature)
+
+
 def verify_certificate(national_code,public_key,signature,pubkey,lifeTime):
     message = json.dumps({'national_code': national_code,
                           'public_key': public_key,
                           'life_time' : lifeTime
                           })
-
-    return verify_RSA(message,signature,pubkey)
+    return verify_RSA(message, signature, pubkey)
 
 
 def payload_encryptor_RSA(payload, pubkey):
@@ -64,15 +63,18 @@ def payload_decryptor_RSA(message, keypair):
     decrypted_message = decrypt_RSA(message, keypair)
     try:
         actual_payload = json.loads(decrypted_message) or {}
-    except:
+    except Exception as e:
         return {}
     return actual_payload
 
 
 """     Fernet       """
+
+
 def generate_Fernet_key():
     key = Fernet.generate_key()
     return key
+
 
 def encrypt_Fernet(message, key):
     f = Fernet(key)
@@ -80,15 +82,18 @@ def encrypt_Fernet(message, key):
     encrypted = f.encrypt(message)
     return encrypted
 
+
 def payload_encryptor_Fernet(payload, key):
     message = json.dumps(payload)
     encrypted_message = encrypt_Fernet(message, key)
     return encrypted_message
 
+
 def decrypt_Fernet(message, key):
     f = Fernet(key)
     decrypted = f.decrypt(message).decode('utf-8')
     return decrypted
+
 
 def payload_decryptor_Fernet(message, key):
     message = bytes(message, 'utf-8')
@@ -98,12 +103,21 @@ def payload_decryptor_Fernet(message, key):
     except:
         return {}
     return actual_payload
+
+
+"""     Timestamp       """
+
+
 def create_timestamp_for_payload():
     return datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f')
+
+
 def create_lifetime_for_payload():
     import datetime as dt
     lifeTime = datetime.now() + dt.timedelta(365)
     return lifeTime.strftime('%Y-%m-%dT%H:%M:%S.%f')
+
+
 def check_payload_timestamp(timestamp):
     real_time = datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%S.%f')
     now = datetime.now()
@@ -111,8 +125,10 @@ def check_payload_timestamp(timestamp):
     if difference <= 5:
         return True
     return False
-def check_payload_lifetime(lifeTime):
-    real_time = datetime.strptime(lifeTime, '%Y-%m-%dT%H:%M:%S.%f')
+
+
+def check_payload_lifetime(life_time):
+    real_time = datetime.strptime(life_time, '%Y-%m-%dT%H:%M:%S.%f')
     now = datetime.now()
     difference = (now - real_time).total_seconds()
     if difference < 0:

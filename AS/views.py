@@ -1,6 +1,5 @@
 import os
 import json
-from datetime import datetime
 import base64
 from django.http.response import JsonResponse
 from django.views.decorators.http import require_http_methods
@@ -10,6 +9,7 @@ from base import Utilities
 from Voting_System import settings
 from Crypto.PublicKey import RSA
 
+
 def load_RSA_key(path):
     path = os.path.join('AS', path)
     path = os.path.join(settings.BASE_DIR, path)
@@ -17,6 +17,7 @@ def load_RSA_key(path):
         key_data = f.read()
     key = RSA.import_key(key_data)
     return key
+
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -33,7 +34,7 @@ def generate_AS_ticket(request):
         if national_code is None:
             payload = {'status': 'fail', 'message': 'کدملی به درستی ارسال نشده است.'}
             return sendResponse(payload, sessionKey)
-        if Utilities.check_payload_timestamp(timestamp) == False:
+        if not Utilities.check_payload_timestamp(timestamp):
             payload = {'status': 'fail', 'message': 'مهلت درخواست ارسال شده منقضی شده است.'}
             return sendResponse(payload, sessionKey)
         message = json.dumps({'national_code': national_code,
@@ -42,15 +43,18 @@ def generate_AS_ticket(request):
                               'certificate_signature': certificate_signature,
                               'timestamp': timestamp,
                               })
-        if Utilities.verify_RSA(message,signature, RSA.import_key(public_key)) == False:
+        if not Utilities.verify_RSA(message, signature, RSA.import_key(public_key)):
             payload = {'status': 'fail', 'message': 'امضا با کلید عمومی ارسالی مطابقت ندارد.'}
             return sendResponse(payload, sessionKey)
-        if Utilities.check_payload_lifetime(life_time) == False:
+        if not Utilities.check_payload_lifetime(life_time):
             payload = {'status': 'fail', 'message': 'گواهی ارسالی منقضی شده است'}
             return sendResponse(payload, sessionKey)
-        if Utilities.verify_certificate(national_code = national_code, lifeTime= life_time,public_key = public_key,
-                                        signature = base64.b64decode(actual_message['certificate_signature'].encode('ascii'))
-                ,pubkey=load_RSA_key('CA-public.key')) == False:
+        if not Utilities.verify_certificate(
+                national_code=national_code,
+                lifeTime=life_time,
+                public_key=public_key,
+                signature=base64.b64decode(actual_message['certificate_signature'].encode('ascii')),
+                pubkey=load_RSA_key('CA-public.key')):
             payload = {'status': 'fail', 'message': 'گواهی ارسالی معتبر نمیباشد'}
             return sendResponse(payload, sessionKey)
     except Exception as e:
@@ -104,6 +108,8 @@ def generate_AS_ticket(request):
         print("#Exception2: {}".format(e))
         payload = {'status': 'fail', 'message': 'لطفا با پشتیبانی تماس بگیرید.'}
         return sendResponse(payload, sessionKey)
+
+
 def sendResponse(data, key):
 
     """ Encrypt Data with Session Key"""

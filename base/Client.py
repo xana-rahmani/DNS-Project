@@ -6,7 +6,6 @@ from base import Utilities
 from base import ClientKeysManagement as KEYS
 
 
-
 session = requests.Session()
 BASE_URL = "http://127.0.0.1:8000/"
 
@@ -19,10 +18,8 @@ def generateCertificaat(name, national_code):
         "timestamp" : Utilities.create_timestamp_for_payload()
     }
 
-
     """ LOAD RSA Keys """
     CA_RSA_Key = RSA.import_key(KEYS.load_public_key('CA-public.key'))
-    # print(CA_RSA_Key)
 
     """ Send Request to CA """
     try:
@@ -33,24 +30,23 @@ def generateCertificaat(name, national_code):
             lifeTime = response.get('life_time')
             timestamp = response.get('time_stamp')
             signature = base64.b64decode(response.get('certificate_signature').encode('ascii'))
-
-
-            if Utilities.check_payload_timestamp(timestamp) == False:
+            if not Utilities.check_payload_timestamp(timestamp):
                 print("گواهی دریافت شده تازه نمیباشد")
                 return
-            if Utilities.verify_certificate(national_code = national_code,public_key=myPublicKey,signature=signature,pubkey=CA_RSA_Key,lifeTime = lifeTime):
-                if Utilities.check_payload_lifetime(lifeTime) == False:
+            if Utilities.verify_certificate(national_code=national_code,public_key=myPublicKey, signature=signature, pubkey=CA_RSA_Key, lifeTime=lifeTime):
+                if not Utilities.check_payload_lifetime(lifeTime):
                     print("گواهی ارسال شده منقصی شده است")
                     return
                 print("گواهی دریافت شده و به درستی توسط ca امضا شده است. همچنین تاریخ انقضای آن فرا نرسیده است")
                 KEYS.save_certificate_signature(response.get('certificate_signature'))
                 KEYS.save_certificate_lifeTime(response.get('life_time'))
                 KEYS.save_my_keys(privateKey=myPrivateKey, publicKey=myPublicKey)
-
     except Exception as e:
         print(e)
+
+
 def generate_AS_ticket(national_code):
-    private_key,public_key = KEYS.read_my_keys()
+    private_key, public_key = KEYS.read_my_keys()
     certificate_signature = KEYS.read_certificate_signature()
     lifetime = KEYS.read_certificate_lifeTime()
     timestamp = Utilities.create_timestamp_for_payload()
@@ -68,11 +64,10 @@ def generate_AS_ticket(national_code):
         "lifetime": lifetime,
         "certificate_signature": certificate_signature,
         "timestamp": timestamp,
-        "signature":signature
+        "signature": signature
     }
     """ LOAD RSA Key of AS """
     AS_RSA_Key = RSA.import_key(KEYS.load_public_key('AS-public.key'))
-    # print(CA_RSA_Key)
 
     """ Send Request to AS """
     try:
@@ -82,8 +77,7 @@ def generate_AS_ticket(national_code):
             vote_crt = response.get('vote_crt')
             timestamp = response.get('time_stamp')
             signature = base64.b64decode(response.get('signature').encode('ascii'))
-
-            if Utilities.check_payload_timestamp(timestamp) == False:
+            if not Utilities.check_payload_timestamp(timestamp):
                 print("گواهی دریافت شده تازه نمیباشد")
                 return
             message = json.dumps({
@@ -92,7 +86,7 @@ def generate_AS_ticket(national_code):
                 'vote_crt': vote_crt,
                 'time_stamp': timestamp
             })
-            if Utilities.verify_RSA(message,signature,AS_RSA_Key) == False:
+            if not Utilities.verify_RSA(message, signature, AS_RSA_Key):
                 print("جواب دریافت شده معتبر نمیباشد")
                 return
             print("بلیت و کلید رای دهی با موفقیت دریافت شد. برای اطمینان از کارکرد آن ها لطفاً اقدام به رای دهی نمایید")
@@ -100,6 +94,8 @@ def generate_AS_ticket(national_code):
             KEYS.save_voting_secret_key(sk_voter)
     except Exception as e:
         print(e)
+
+
 def vote(candidate_id):
     private_key, public_key = KEYS.read_my_keys()
     vote_crt = KEYS.read_voting_certificate()
