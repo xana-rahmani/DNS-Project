@@ -15,7 +15,7 @@ def generateCertificaat(name, national_code):
     data = {
         "national_code": national_code,
         "name": name,
-        "timestamp" : Utilities.create_timestamp_for_payload()
+        "timestamp": Utilities.create_timestamp_for_payload()
     }
 
     """ LOAD RSA Keys """
@@ -106,12 +106,14 @@ def vote(candidate_id):
         'signature':signature
     })
     voting_data = Utilities.encrypt_Fernet(message,sk_voter)
-    payload = {"data": voting_data,
-                       "vote_crt":vote_crt }
+    payload = {
+        "data": voting_data,
+        "vote_crt": vote_crt
+    }
     try:
         response = session.post(url=BASE_URL + "vote", data=payload)
         response = response.json()
-        response = decodeResponse(response=response, RSA_KEY=None,Session_Key=sk_voter)
+        response = decodeResponse(response=response, RSA_KEY=None, Session_Key=sk_voter)
     except Exception as e:
         print("#Exception in REQUEST: {}".format(e))
 
