@@ -103,7 +103,21 @@ def generate_AS_ticket(national_code):
 def vote(candidate_id):
     private_key, public_key = KEYS.read_my_keys()
     vote_crt = KEYS.read_voting_certificate()
-    return
+    sk_voter = KEYS.read_voting_secret_key()
+    signature = base64.b64encode(Utilities.sign_RSA(str(candidate_id), RSA.import_key(private_key))).decode('ascii')
+    message = json.dumps({
+        'vote' : str(candidate_id),
+        'signature':signature
+    })
+    voting_data = Utilities.encrypt_Fernet(message,sk_voter)
+    payload = {"data": voting_data,
+                       "vote_crt":vote_crt }
+    try:
+        response = session.post(url=BASE_URL + "vote", data=payload)
+        response = response.json()
+        response = decodeResponse(response=response, RSA_KEY=None,Session_Key=sk_voter)
+    except Exception as e:
+        print("#Exception in REQUEST: {}".format(e))
 
 def sendRequest(data, RSA_KEY, path):
 

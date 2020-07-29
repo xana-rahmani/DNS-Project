@@ -24,6 +24,13 @@ def load_RSA_key(path):
 @csrf_exempt
 @require_http_methods(["POST"])
 def vote(request):
+    try:
+        vote_crt = request.Post["vote_crt"]
+        vote = request.Post["data"]
+    except Exception as e:
+        print("#Exception-1: {}".format(e))
+        payload = {'status': 'fail', 'message': 'درخواست به درستی ارسال نشده است.'}
+        # return sendResponse(payload, sessionKey)
     return
 def sendResponse(data, key):
 
