@@ -91,17 +91,17 @@ def generate_AS_ticket(request):
         new_timestamp = Utilities.create_timestamp_for_payload()
         message = json.dumps({
             'status': 'successful',
-             'sk_voter':str(sk_voter, 'utf-8'),
-            'vote_crt' : vote_crt,
+             'sk_voter': str(sk_voter, 'utf-8'),
+            'vote_crt': vote_crt,
             'time_stamp': new_timestamp
         })
         AS_signature = base64.b64encode(Utilities.sign_RSA(message, load_RSA_key('AS-private.key'))).decode('ascii')
         payload = {
             'status': 'successful',
-            'sk_voter':str(sk_voter, 'utf-8'),
-            'vote_crt' : vote_crt,
+            'sk_voter': str(sk_voter, 'utf-8'),
+            'vote_crt': vote_crt,
             'time_stamp': new_timestamp,
-            'signature' : AS_signature
+            'signature': AS_signature
         }
         return sendResponse(payload,sessionKey)
     except Exception as e:

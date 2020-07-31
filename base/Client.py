@@ -101,19 +101,19 @@ def vote(candidate_id):
     vote_crt = KEYS.read_voting_certificate()
     sk_voter = KEYS.read_voting_secret_key()
     signature = base64.b64encode(Utilities.sign_RSA(str(candidate_id), RSA.import_key(private_key))).decode('ascii')
-    message = json.dumps({
-        'vote' : str(candidate_id),
-        'signature':signature
-    })
-    voting_data = Utilities.encrypt_Fernet(message,sk_voter)
+    voting_data = {
+        'vote': str(candidate_id),
+        'signature': signature
+    }
+    voting_data = Utilities.payload_encryptor_Fernet(voting_data, sk_voter)
     payload = {
-        "data": voting_data,
+        "data": voting_data.decode('utf-8'),
         "vote_crt": vote_crt
     }
+    """ LOAD RSA Key of AS """
+    VS_RSA_Key = RSA.import_key(KEYS.load_public_key('VS-public.key'))
     try:
-        response = session.post(url=BASE_URL + "vote", data=payload)
-        response = response.json()
-        response = decodeResponse(response=response, RSA_KEY=None, Session_Key=sk_voter)
+        response = sendRequest(data=payload, RSA_KEY=VS_RSA_Key, path="vote")
     except Exception as e:
         print("#Exception in REQUEST: {}".format(e))
 

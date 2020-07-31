@@ -11,7 +11,6 @@ from Voting_System import settings
 from Crypto.PublicKey import RSA
 
 
-# Create your views here.
 def load_RSA_key(path):
     path = os.path.join('VS', path)
     path = os.path.join(settings.BASE_DIR, path)
@@ -25,6 +24,9 @@ def load_RSA_key(path):
 @require_http_methods(["POST"])
 def vote(request):
     try:
+        sessionKey = Utilities.payload_decryptor_RSA(request.POST["sessionKey"], load_RSA_key('VS-private.key')).encode()
+        actual_message = Utilities.payload_decryptor_Fernet(request.POST["data"], sessionKey)
+        print("actual_message: ", actual_message)
         vote_crt = request.Post["vote_crt"]
         vote = request.Post["data"]
     except Exception as e:
@@ -32,6 +34,8 @@ def vote(request):
         payload = {'status': 'fail', 'message': 'درخواست به درستی ارسال نشده است.'}
         # return sendResponse(payload, sessionKey)
     return
+
+
 def sendResponse(data, key):
 
     """ Encrypt Data with Session Key"""
