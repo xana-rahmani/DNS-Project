@@ -96,7 +96,8 @@ def decrypt_Fernet(message, key):
 
 
 def payload_decryptor_Fernet(message, key):
-    message = bytes(message, 'utf-8')
+    if not isinstance(message, bytes):
+        message = bytes(message, 'utf-8')
     decrypted_message = decrypt_Fernet(message, key)
     try:
         actual_payload = json.loads(decrypted_message) or {}

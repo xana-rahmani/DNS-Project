@@ -26,8 +26,17 @@ def vote(request):
     try:
         sessionKey = Utilities.payload_decryptor_RSA(request.POST["sessionKey"], load_RSA_key('VS-private.key')).encode()
         actual_message = Utilities.payload_decryptor_Fernet(request.POST["data"], sessionKey)
-        print("actual_message: ", actual_message)
-        vote_crt = request.Post["vote_crt"]
+        vote_crt = actual_message.get("vote_crt")
+        vote_crt = json.loads(vote_crt)
+        AS_sessionKey = Utilities.payload_decryptor_RSA(vote_crt.get('sessionKey'), load_RSA_key('VS-private.key'))
+
+        vote_crt_data = vote_crt.get('data')
+        vote_crt_data = vote_crt_data.encode('ascii')
+        vote_crt_data = base64.b64decode(vote_crt_data)
+
+        print("*** vote_crt_data1: ", vote_crt_data)
+        vote_crt_data = Utilities.payload_decryptor_Fernet(vote_crt_data, AS_sessionKey.encode())
+        print("*** vote_crt_data2: ", vote_crt_data)
         vote = request.Post["data"]
     except Exception as e:
         print("#Exception-1: {}".format(e))
