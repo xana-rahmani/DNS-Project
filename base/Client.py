@@ -114,6 +114,7 @@ def vote(candidate_id):
     VS_RSA_Key = RSA.import_key(KEYS.load_public_key('VS-public.key'))
     try:
         response = sendRequest(data=payload, RSA_KEY=VS_RSA_Key, path="vote")
+        print(response)
     except Exception as e:
         print("#Exception in REQUEST: {}".format(e))
 
