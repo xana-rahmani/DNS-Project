@@ -18,10 +18,12 @@ Public_Keys_DIR = os.path.join(BASE_DIR, 'base/Public-Keys')
 
 
 def load_public_key(path):
-    print("load_public_key")
+    from Crypto.PublicKey import RSA
+
     path = os.path.join(Public_Keys_DIR, path)
     with open(path, 'r') as f:
-        key = f.read()
+        key_data = f.read()
+    key = RSA.import_key(key_data)
     return key
 
 # Quick-start development settings - unsuitable for production

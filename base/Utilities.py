@@ -43,11 +43,26 @@ def verify_RSA(message, signature, pubkey):
     return signer.verify(h, signature)
 
 
-def verify_certificate(national_code,public_key,signature,pubkey,lifeTime):
-    message = json.dumps({'national_code': national_code,
-                          'public_key': public_key,
-                          'life_time' : lifeTime
-                          })
+def verify_certificate(national_code, public_key, signature, pubkey, lifeTime):
+    message = json.dumps(
+        {
+            'national_code': national_code,
+            'public_key': public_key,
+            'life_time': lifeTime
+        })
+    return verify_RSA(message, signature, pubkey)
+
+
+def verify_vote(candidate_id, pubkey, signature):
+    return verify_RSA(candidate_id, signature, pubkey)
+
+
+def verify_AS_sign(sk_voter, public_key, pubkey, signature):
+    message = json.dumps(
+        {
+            'sk_voter': sk_voter,
+            'public_key': public_key,
+        })
     return verify_RSA(message, signature, pubkey)
 
 
