@@ -1,8 +1,10 @@
 import time
 from base import Client
 from CA.models import User
+from CA.models import Certificaat
 from AS.models import RestrictedNationalCodes
 from VS.models import Candidates
+from VS.models import Votes
 print("#########################################")
 time.sleep(0.4)
 print("#\t\t   \t\t\t#")
@@ -25,6 +27,7 @@ candidates = [('xana', '3850230478'), ('khashayar', '100000000'), ('sahand', '10
 
 print("\tUsers Information")
 User.objects.all().delete()
+Certificaat.objects.all().delete()
 for user in users:
     print("\t\t", user[0], "\t.... ", user[1])
     userObject = User(name=user[0], national_code=user[1])
@@ -39,6 +42,7 @@ for RNCode in restrictedNationalCodes:
 
 print("\n\tCandidates")
 Candidates.objects.all().delete()
+Votes.objects.all().delete()
 candidate_id = 1
 for candidate in candidates:
     print("\t\t", candidate[0], "\t.... ", candidate[1], "\t ID: ",candidate_id)
