@@ -92,6 +92,8 @@ def generate_AS_ticket(national_code):
             print("بلیت و کلید رای دهی با موفقیت دریافت شد. برای اطمینان از کارکرد آن ها لطفاً اقدام به رای دهی نمایید")
             KEYS.save_voting_certificate(vote_crt)
             KEYS.save_voting_secret_key(sk_voter)
+        else:
+            print(response.get('message'))
     except Exception as e:
         print(e)
 
@@ -114,7 +116,7 @@ def vote(candidate_id):
     VS_RSA_Key = RSA.import_key(KEYS.load_public_key('VS-public.key'))
     try:
         response = sendRequest(data=payload, RSA_KEY=VS_RSA_Key, path="vote")
-        print(response)
+        print(response.get('message'))
     except Exception as e:
         print("#Exception in REQUEST: {}".format(e))
 

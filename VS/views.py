@@ -109,7 +109,7 @@ def addVote(candidate_id, public_key):
             user_vote = user_vote.first()
             voted_to = user_vote.voted_to
             message = 'شما قبلا به کاندید {} رای داده اید.'.format(voted_to.candidate_id)
-            return {'status': 'fail', 'message': message}
+            return {'status': 'successful', 'message': message}
         elif user_vote.count() == 0:
             with transaction.atomic():
                 newVote = Votes(public_key=public_key, voted_to=candidate)
@@ -118,7 +118,7 @@ def addVote(candidate_id, public_key):
                 candidate.number_of_votes = temp_number_of_vote + 1
                 candidate.save(update_fields=['number_of_votes'])
                 message = 'رای شما به کاندیدا با شماره {} ثبت گردید.'.format(candidate.candidate_id)
-                return {'status': 'fail', 'message': message}
+                return {'status': 'successful', 'message': message}
     except IntegrityError:
         print("#ERROR IN SYSTEM: error in add Vote in Data Base")
         return {'status': 'fail', 'message': 'لطفا با پشتیبانی تماس بگیرید.'}

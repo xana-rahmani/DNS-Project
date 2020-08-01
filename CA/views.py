@@ -52,7 +52,7 @@ def generate_certificaat(request):
             return sendResponse(payload, sessionKey)
         user = userObjects.first()
         if user:
-            payload = create_certificaat(user,national_code)
+            payload = create_certificaat(user, national_code)
             return sendResponse(payload, sessionKey)
         else:
             payload = {'status': 'fail', 'message': 'کاربر یافت نشد، لطفا دوباره تلاش کنید.'}
@@ -63,7 +63,7 @@ def generate_certificaat(request):
         return sendResponse(payload, sessionKey)
 
 
-def create_certificaat(user,national_code):
+def create_certificaat(user, national_code):
     certificaat = Certificaat.objects.filter(user=user)
     if certificaat.count() == 1:
         certificaat = certificaat.first()
