@@ -108,7 +108,7 @@ def addVote(candidate_id, public_key):
         if user_vote.count() != 0:
             user_vote = user_vote.first()
             voted_to = user_vote.voted_to
-            message = 'شما قبلا به کاندید{} رای داده اید.'.format(voted_to.candidate_id)
+            message = 'شما قبلا به کاندید {} رای داده اید.'.format(voted_to.candidate_id)
             return {'status': 'fail', 'message': message}
         elif user_vote.count() == 0:
             with transaction.atomic():

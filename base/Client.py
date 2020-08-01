@@ -145,11 +145,3 @@ def decodeResponse(response, RSA_KEY, Session_Key):
     data = response.get("data")
     data = Utilities.payload_decryptor_Fernet(data, Session_Key)
     return data
-
-# from base import Client as c
-# c.generateCertificaat(name="xana", national_code="9075529379")
-generateCertificaat(name="xana", national_code="9075529379")
-generate_AS_ticket(national_code="9075529379")
-vote(candidate_id=1)
-
-
