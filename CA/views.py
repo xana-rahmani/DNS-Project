@@ -11,9 +11,6 @@ from Voting_System import settings
 from Crypto.PublicKey import RSA
 
 
-logging.basicConfig(filename="./CA/logData.log", level=logging.INFO)
-
-
 # Create your views here.
 def load_RSA_key(path):
     path = os.path.join('CA', path)
@@ -28,7 +25,7 @@ def load_RSA_key(path):
 @require_http_methods(["POST"])
 def generate_certificaat(request):
     try:
-        logging.info("CA receive a request")
+        logging.info("\n\n\t\t---- CA receive a request -----\n")
         sessionKey = Utilities.payload_decryptor_RSA(request.POST["sessionKey"], load_RSA_key('CA-private.key')).encode()
         actual_message = Utilities.payload_decryptor_Fernet(request.POST["data"], sessionKey)
         logging.info("CA request actual message: {}".format(actual_message))

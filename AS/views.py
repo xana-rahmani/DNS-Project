@@ -1,5 +1,6 @@
 import os
 import json
+import logging
 import base64
 from django.http.response import JsonResponse
 from django.views.decorators.http import require_http_methods
@@ -23,8 +24,10 @@ def load_RSA_key(path):
 @require_http_methods(["POST"])
 def generate_AS_ticket(request):
     try:
+        logging.info("\n\n\t\t---- AC receive a request -----\n")
         sessionKey = Utilities.payload_decryptor_RSA(request.POST["sessionKey"], load_RSA_key('AS-private.key')).encode()
         actual_message = Utilities.payload_decryptor_Fernet(request.POST["data"], sessionKey)
+        logging.info("AC request actual message: {}".format(actual_message))
         public_key = actual_message["public_key"]
         national_code = actual_message["national_code"]
         certificate_signature = actual_message["certificate_signature"]
@@ -32,10 +35,14 @@ def generate_AS_ticket(request):
         timestamp = actual_message["timestamp"]
         signature = base64.b64decode(actual_message["signature"].encode('ascii'))
         if national_code is None:
-            payload = {'status': 'fail', 'message': 'کدملی به درستی ارسال نشده است.'}
+            message = 'کدملی به درستی ارسال نشده است.'
+            logging.info(message)
+            payload = {'status': 'fail', 'message': message}
             return sendResponse(payload, sessionKey)
         if not Utilities.check_payload_timestamp(timestamp):
-            payload = {'status': 'fail', 'message': 'مهلت درخواست ارسال شده منقضی شده است.'}
+            message = 'مهلت درخواست ارسال شده منقضی شده است.'
+            logging.info(message)
+            payload = {'status': 'fail', 'message': message}
             return sendResponse(payload, sessionKey)
         message = json.dumps({'national_code': national_code,
                               'public_key': public_key,
@@ -44,10 +51,14 @@ def generate_AS_ticket(request):
                               'timestamp': timestamp,
                               })
         if not Utilities.verify_RSA(message, signature, RSA.import_key(public_key)):
-            payload = {'status': 'fail', 'message': 'امضا با کلید عمومی ارسالی مطابقت ندارد.'}
+            message = 'امضا با کلید عمومی ارسالی مطابقت ندارد.'
+            logging.info(message)
+            payload = {'status': 'fail', 'message': message}
             return sendResponse(payload, sessionKey)
         if not Utilities.check_payload_lifetime(life_time):
-            payload = {'status': 'fail', 'message': 'گواهی ارسالی منقضی شده است'}
+            message = 'گواهی ارسالی منقضی شده است'
+            logging.info(message)
+            payload = {'status': 'fail', 'message': message}
             return sendResponse(payload, sessionKey)
         if not Utilities.verify_certificate(
                 national_code=national_code,
@@ -55,16 +66,22 @@ def generate_AS_ticket(request):
                 public_key=public_key,
                 signature=base64.b64decode(actual_message['certificate_signature'].encode('ascii')),
                 pubkey=load_RSA_key('CA-public.key')):
-            payload = {'status': 'fail', 'message': 'گواهی ارسالی معتبر نمیباشد'}
+            message = 'گواهی ارسالی معتبر نمیباشد.'
+            logging.info(message)
+            payload = {'status': 'fail', 'message': message}
             return sendResponse(payload, sessionKey)
     except Exception as e:
         print("#Exception-1: {}".format(e))
-        payload = {'status': 'fail', 'message': 'درخواست به درستی ارسال نشده است.'}
+        message = 'درخواست به درستی ارسال نشده است.'
+        logging.info(message)
+        payload = {'status': 'fail', 'message': message}
         return sendResponse(payload, sessionKey)
     try:
         restricted_users = RestrictedNationalCodes.objects.filter(national_code=national_code).count()
         if restricted_users > 0:
-            payload = {'status': 'fail', 'message': 'متاسفانه شما مجاز به رای دادن نمیباشید.'}
+            message = 'متاسفانه شما مجاز به رای دادن نمیباشید.'
+            logging.info(message)
+            payload = {'status': 'fail', 'message': message}
             return sendResponse(payload, sessionKey)
         sk_voter = Utilities.generate_Fernet_key()
         # creating vote certificate
@@ -96,17 +113,22 @@ def generate_AS_ticket(request):
             'time_stamp': new_timestamp
         })
         AS_signature = base64.b64encode(Utilities.sign_RSA(message, load_RSA_key('AS-private.key'))).decode('ascii')
+        message = 'بلیت و کلید رای دهی با موفقیت ارسال شد.'
+        logging.info(message)
         payload = {
+            'message': message,
             'status': 'successful',
             'sk_voter': str(sk_voter, 'utf-8'),
             'vote_crt': vote_crt,
             'time_stamp': new_timestamp,
             'signature': AS_signature
         }
-        return sendResponse(payload,sessionKey)
+        return sendResponse(payload, sessionKey)
     except Exception as e:
         print("#Exception2: {}".format(e))
-        payload = {'status': 'fail', 'message': 'لطفا با پشتیبانی تماس بگیرید.'}
+        message = 'لطفا با پشتیبانی تماس بگیرید.'
+        logging.info(message)
+        payload = {'status': 'fail', 'message': message}
         return sendResponse(payload, sessionKey)
 
 
