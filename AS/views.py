@@ -24,10 +24,10 @@ def load_RSA_key(path):
 @require_http_methods(["POST"])
 def generate_AS_ticket(request):
     try:
-        logging.info("\n\n\t\t---- AC receive a request -----\n")
+        logging.info("\n\n\t\t---- AS receive a request -----\n")
         sessionKey = Utilities.payload_decryptor_RSA(request.POST["sessionKey"], load_RSA_key('AS-private.key')).encode()
         actual_message = Utilities.payload_decryptor_Fernet(request.POST["data"], sessionKey)
-        logging.info("AC request actual message: {}".format(actual_message))
+        logging.info("AS request actual message: {}".format(actual_message))
         public_key = actual_message["public_key"]
         national_code = actual_message["national_code"]
         certificate_signature = actual_message["certificate_signature"]
