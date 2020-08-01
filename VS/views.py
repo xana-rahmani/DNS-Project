@@ -25,7 +25,7 @@ def load_RSA_key(path):
 @require_http_methods(["POST"])
 def vote(request):
     try:
-        logging.info("\n\n\t\t---- VS receive a request -----\n")
+        logging.info("\n\n\t\t---- VS: vote receive a request -----\n")
         """ Read Request Data """
         sessionKey = Utilities.payload_decryptor_RSA(request.POST["sessionKey"], load_RSA_key('VS-private.key')).encode()
         actual_message = Utilities.payload_decryptor_Fernet(request.POST["data"], sessionKey)
@@ -82,6 +82,16 @@ def vote(request):
         logging.info("#Exception-2: {}".format(e))
         payload = {'status': 'fail', 'message': 'درخواست به درستی ارسال نشده است.'}
         return sendResponse(payload, sessionKey)
+
+
+@require_http_methods(["GET"])
+def seeVote(request):
+    logging.info("\n\n\t\t---- VS: see vote receive a request -----\n")
+    candidates = Candidates.objects.all()
+    numerOfVote = {}
+    for candidate in candidates:
+        numerOfVote[candidate.candidate_id] = candidate.number_of_votes
+    return JsonResponse(numerOfVote, status=200)
 
 
 def checkVoteSignature(user_vote, pubkey):

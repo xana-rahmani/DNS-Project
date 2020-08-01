@@ -24,4 +24,5 @@ urlpatterns = [
     path('generate-certificaat', CA_views.generate_certificaat),
     path('generate-AS-ticket', AS_views.generate_AS_ticket),
     path('vote', VS_views.vote),
+    path('seeVote', VS_views.seeVote),
 ]

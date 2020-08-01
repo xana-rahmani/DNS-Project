@@ -59,10 +59,13 @@ print("\t\tDescription: generate AS ticket")
 print("\t\tArgs: national_code")
 time.sleep(0.5)
 print("\t3. vote")
-print("\t\tDescription: sens vote")
+print("\t\tDescription: send vote")
 print("\t\tArgs: candidate_id")
 time.sleep(0.5)
-print("\t4. exit")
+print("\t4. seeVote")
+print("\t\tDescription: see vote")
+time.sleep(0.5)
+print("\t5. exit")
 print("\t\tDescription: close program")
 
 while True:
@@ -88,6 +91,12 @@ while True:
             continue
         Client.vote(candidate_id=temp[1])
 
+    elif temp[0] == "seeVote":
+        if len(temp) != 1:
+            print("---- Wrong Command ----")
+            continue
+        Client.seeVote()
+
     elif temp[0] == "exit":
         print("#### Close Program ####")
         break
@@ -99,7 +108,7 @@ while True:
 # g-C ramin 100000005
 # g-AS_ticket 100000005
 # vote 1
-
+# seeVote
 
 # g-C amir 100000007
 # g-AS_ticket 100000007

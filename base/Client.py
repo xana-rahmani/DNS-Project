@@ -158,6 +158,14 @@ def vote(candidate_id):
         logging.info(message)
 
 
+def seeVote():
+    logging.info("\n\n\t\t---- Client: See Vote -----\n")
+    response = session.get(url=BASE_URL + "seeVote")
+    message = response.json()
+    print(message)
+    logging.info(message)
+
+
 def sendRequest(data, RSA_KEY, path):
 
     """ Generate Session Key"""
