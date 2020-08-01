@@ -4,7 +4,7 @@ import base64
 from django.http.response import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
-from .models import Restricted_National_Codes
+from .models import RestrictedNationalCodes
 from base import Utilities
 from Voting_System import settings
 from Crypto.PublicKey import RSA
@@ -62,7 +62,7 @@ def generate_AS_ticket(request):
         payload = {'status': 'fail', 'message': 'درخواست به درستی ارسال نشده است.'}
         return sendResponse(payload, sessionKey)
     try:
-        restricted_users = Restricted_National_Codes.objects.filter(national_code=national_code).count()
+        restricted_users = RestrictedNationalCodes.objects.filter(national_code=national_code).count()
         if restricted_users > 0:
             payload = {'status': 'fail', 'message': 'متاسفانه شما مجاز به رای دادن نمیباشید.'}
             return sendResponse(payload, sessionKey)
