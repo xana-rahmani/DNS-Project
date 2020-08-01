@@ -1,6 +1,7 @@
 import requests
 import base64
 import json
+import logging
 from Crypto.PublicKey import RSA
 from base import Utilities
 from base import ClientKeysManagement as KEYS
@@ -11,12 +12,15 @@ BASE_URL = "http://127.0.0.1:8000/"
 
 
 def generateCertificaat(name, national_code):
+    logging.info("\n\n\t\t---- Client: generateCertificaat -----\n")
+
     """ Set national code & name in data dic"""
     data = {
         "national_code": national_code,
         "name": name,
         "timestamp": Utilities.create_timestamp_for_payload()
     }
+    logging.info("Sending Data: ", data)
 
     """ LOAD RSA Keys """
     CA_RSA_Key = RSA.import_key(KEYS.load_public_key('CA-public.key'))
@@ -31,21 +35,34 @@ def generateCertificaat(name, national_code):
             timestamp = response.get('time_stamp')
             signature = base64.b64decode(response.get('certificate_signature').encode('ascii'))
             if not Utilities.check_payload_timestamp(timestamp):
-                print("گواهی دریافت شده تازه نمیباشد")
+                message = "گواهی دریافت شده تازه نمیباشد."
+                print(message)
+                logging.info(message)
                 return
             if Utilities.verify_certificate(national_code=national_code,public_key=myPublicKey, signature=signature, pubkey=CA_RSA_Key, lifeTime=lifeTime):
                 if not Utilities.check_payload_lifetime(lifeTime):
-                    print("گواهی ارسال شده منقصی شده است")
+                    message = "گواهی ارسال شده منقصی شده است."
+                    print(message)
+                    logging.info(message)
                     return
-                print("گواهی دریافت شده و به درستی توسط ca امضا شده است. همچنین تاریخ انقضای آن فرا نرسیده است")
+                message = "گواهی دریافت شده و به درستی توسط ca امضا شده است. همچنین تاریخ انقضای آن فرا نرسیده است."
+                print(message)
+                logging.info(message)
                 KEYS.save_certificate_signature(response.get('certificate_signature'))
                 KEYS.save_certificate_lifeTime(response.get('life_time'))
                 KEYS.save_my_keys(privateKey=myPrivateKey, publicKey=myPublicKey)
+        else:
+            message = response.get("message")
+            print(message)
+            logging.info(message)
     except Exception as e:
-        print(e)
+        message = "Exception #1: {}".format(e)
+        print(message)
+        logging.info(message)
 
 
 def generate_AS_ticket(national_code):
+    logging.info("\n\n\t\t---- Client: generate_AS_ticket -----\n")
     private_key, public_key = KEYS.read_my_keys()
     certificate_signature = KEYS.read_certificate_signature()
     lifetime = KEYS.read_certificate_lifeTime()
@@ -66,6 +83,7 @@ def generate_AS_ticket(national_code):
         "timestamp": timestamp,
         "signature": signature
     }
+    logging.info("Sending Data: ", data)
     """ LOAD RSA Key of AS """
     AS_RSA_Key = RSA.import_key(KEYS.load_public_key('AS-public.key'))
 
@@ -78,7 +96,9 @@ def generate_AS_ticket(national_code):
             timestamp = response.get('time_stamp')
             signature = base64.b64decode(response.get('signature').encode('ascii'))
             if not Utilities.check_payload_timestamp(timestamp):
-                print("گواهی دریافت شده تازه نمیباشد")
+                message = "گواهی دریافت شده تازه نمیباشد."
+                print(message)
+                logging.info(message)
                 return
             message = json.dumps({
                 'status': 'successful',
@@ -87,18 +107,28 @@ def generate_AS_ticket(national_code):
                 'time_stamp': timestamp
             })
             if not Utilities.verify_RSA(message, signature, AS_RSA_Key):
-                print("جواب دریافت شده معتبر نمیباشد")
+                message = "جواب دریافت شده معتبر نمیباشد."
+                print(message)
+                logging.info(message)
                 return
-            print("بلیت و کلید رای دهی با موفقیت دریافت شد. برای اطمینان از کارکرد آن ها لطفاً اقدام به رای دهی نمایید")
+            message = "بلیت و کلید رای دهی دریافت شد. برای اطمینان از کارکرد آن لطفاً اقدام به رای دهی نمایید."
+            print(message)
+            logging.info(message)
             KEYS.save_voting_certificate(vote_crt)
             KEYS.save_voting_secret_key(sk_voter)
         else:
-            print(response.get('message'))
+            message = response.get('message')
+            print(message)
+            logging.info(message)
     except Exception as e:
-        print(e)
+        message = "Exception #2: {}".format(e)
+        print(message)
+        logging.info(message)
 
 
 def vote(candidate_id):
+    logging.info("\n\n\t\t---- Client: Vote -----\n")
+
     private_key, public_key = KEYS.read_my_keys()
     vote_crt = KEYS.read_voting_certificate()
     sk_voter = KEYS.read_voting_secret_key()
@@ -107,18 +137,25 @@ def vote(candidate_id):
         'vote': str(candidate_id),
         'signature': signature
     }
+    logging.info("Voting Data: ", voting_data)
     voting_data = Utilities.payload_encryptor_Fernet(voting_data, sk_voter)
     payload = {
         "data": voting_data.decode('utf-8'),
         "vote_crt": vote_crt
     }
+    logging.info("Sending Data: ", payload)
+
     """ LOAD RSA Key of AS """
     VS_RSA_Key = RSA.import_key(KEYS.load_public_key('VS-public.key'))
     try:
         response = sendRequest(data=payload, RSA_KEY=VS_RSA_Key, path="vote")
-        print(response.get('message'))
+        message = response.get('message')
+        print(message)
+        logging.info(message)
     except Exception as e:
-        print("#Exception in REQUEST: {}".format(e))
+        message = "Exception #3: {}".format(e)
+        print(message)
+        logging.info(message)
 
 
 def sendRequest(data, RSA_KEY, path):
@@ -140,10 +177,17 @@ def sendRequest(data, RSA_KEY, path):
         response = response.json()
         return decodeResponse(response, RSA_KEY, Session_Key)
     except Exception as e:
-        print("#Exception in REQUEST: {}".format(e))
+        message = "#Exception in REQUEST: {}".format(e)
+        print(message)
+        logging.info(message)
 
 
 def decodeResponse(response, RSA_KEY, Session_Key):
-    data = response.get("data")
-    data = Utilities.payload_decryptor_Fernet(data, Session_Key)
+    try:
+        data = response.get("data")
+        data = Utilities.payload_decryptor_Fernet(data, Session_Key)
+    except Exception as e:
+        message = "#Exception in Decode Response: {}".format(e)
+        print(message)
+        logging.info(message)
     return data
